@@ -37,12 +37,40 @@ defmodule ExJsonSchema.Validator.Pattern do
     []
   end
 
+  defmodule RegexParsec do
+    import NimbleParsec
+
+    unicode_escape =
+      string("u")
+      |> ascii_string([?0..?9, ?a..?z, ?A..?Z], 4)
+      |> reduce({:to_pcre, []})
+
+    escape_sequence =
+      string("\\")
+      |> choice([
+        unicode_escape,
+        utf8_char([])
+      ])
+
+    non_escape_sequence = ascii_string([{:not, ?\\}], min: 1)
+
+    defp to_pcre(["u", bytes]) do
+      "x{#{bytes}}"
+    end
+
+    defparsec(
+      :from_emcascript_regex,
+      repeat(choice([escape_sequence, non_escape_sequence])) |> reduce({List, :to_string, []})
+    )
+  end
+
   @doc """
   Converts ECMAScript style regexes to PCRE (for BEAM compatibility).
   Currently supports `\\u` with 4 byte hex codes.
   """
   def convert_regex(r) do
-    r
-    |> String.replace(~r/\\u([A-F0-9]{4})/, "\\x\{\\g{1}\}")
+    {:ok, [result], _, _, _, _} = RegexParsec.from_emcascript_regex(r)
+
+    result
   end
 end

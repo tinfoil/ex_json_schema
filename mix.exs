@@ -39,6 +39,7 @@ defmodule ExJsonSchema.Mixfile do
       {:excoveralls, "~> 0.10", only: :test},
       {:httpoison, "~> 0.8", only: :test},
       {:mix_test_watch, "~> 1.0.0", only: [:dev, :test]},
+      {:nimble_parsec, "~> 1.1", runtime: false},
       {:poison, "~> 1.5", only: :test}
     ]
   end
