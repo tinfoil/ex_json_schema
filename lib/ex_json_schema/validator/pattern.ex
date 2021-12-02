@@ -22,6 +22,7 @@ defmodule ExJsonSchema.Validator.Pattern do
   defp do_validate(pattern, data) when is_bitstring(data) do
     matches? =
       pattern
+      |> convert_regex()
       |> Regex.compile!()
       |> Regex.match?(data)
 
@@ -34,5 +35,14 @@ defmodule ExJsonSchema.Validator.Pattern do
 
   defp do_validate(_, _) do
     []
+  end
+
+  @doc """
+  Converts ECMAScript style regexes to PCRE (for BEAM compatibility).
+  Currently supports `\\u` with 4 byte hex codes.
+  """
+  def convert_regex(r) do
+    r
+    |> String.replace(~r/\\u([A-F0-9]{4})/, "\\x\{\\g{1}\}")
   end
 end
