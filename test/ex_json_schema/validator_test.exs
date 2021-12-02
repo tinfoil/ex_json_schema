@@ -544,6 +544,13 @@ defmodule ExJsonSchema.ValidatorTest do
            )
   end
 
+  test "validation with a pattern with 4-byte unicode characters with escapes" do
+    assert valid?(
+             %{"pattern" => "\\\\u00AA"},
+             "\\\\u00AA"
+           )
+  end
+
   test "validation errors for const" do
     assert_validation_errors(
       %{"const" => "foo"},
