@@ -13,6 +13,13 @@ defmodule ExJsonSchema.Validator.Properties do
 
   @impl ExJsonSchema.Validator
   def validate(root, schema, {"properties", _}, properties = %{}, path) do
+    schema =
+      if Application.get_env(:ex_json_schema, :strict_mode) do
+        Map.put_new(schema, "additionalProperties", false)
+      else
+        schema
+      end
+
     do_validate(root, schema, properties, path)
   end
 

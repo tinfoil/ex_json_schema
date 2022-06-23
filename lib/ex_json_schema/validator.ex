@@ -4,7 +4,7 @@ defmodule ExJsonSchema.Validator do
   alias ExJsonSchema.Schema.Root
 
   @type errors :: [%Error{}] | list
-  @type options :: [error_formatter: module() | false]
+  @type options :: [error_formatter: module() | false, strict: boolean()]
 
   @callback validate(
               Root.t(),
@@ -19,6 +19,9 @@ defmodule ExJsonSchema.Validator do
   def validate(root, data, options \\ [])
 
   def validate(root = %Root{}, data, options) when is_list(options) do
+    strict_mode = Keyword.get(options, :strict, false)
+    Application.put_env(:ex_json_schema, :strict_mode, strict_mode)
+
     validate_fragment(root, root.schema, data, options)
   end
 
