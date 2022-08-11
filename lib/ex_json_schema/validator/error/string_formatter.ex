@@ -22,9 +22,7 @@ defmodule ExJsonSchema.Validator.Error.StringFormatter do
 
   defimpl String.Chars, for: Error.AllOf do
     def to_string(%Error.AllOf{invalid: invalid}) do
-      "Expected all of the schemata to match, but the schemata at the following indexes did not: #{
-        Enum.map_join(invalid, ", ", & &1.index)
-      }."
+      "Expected all of the schemata to match, but the schemata at the following indexes did not: #{Enum.map_join(invalid, ", ", & &1.index)}."
     end
   end
 
@@ -164,13 +162,34 @@ defmodule ExJsonSchema.Validator.Error.StringFormatter do
   end
 
   defimpl String.Chars, for: Error.OneOf do
-    def to_string(%Error.OneOf{valid_indices: valid_indices}) do
+    alias ExJsonSchema.Validator.Error
+
+    def to_string(%Error.OneOf{
+          valid_indices: valid_indices,
+          closest_match_errors: closest_match_errors,
+          closest_match_index: closest_match_index
+        }) do
       if length(valid_indices) > 1 do
         "Expected exactly one of the schemata to match, but the schemata at the following indexes did: " <>
           Enum.join(valid_indices, ", ") <> "."
       else
-        "Expected exactly one of the schemata to match, but none of them did."
+        itemized_errors = itemize_errors(closest_match_errors)
+
+        "Expected exactly one of the schemata to match, but none of them did. Closest match was at index #{closest_match_index}, but failed due to the following error types: #{itemized_errors}"
       end
+    end
+
+    defp itemize_errors(errors) do
+      Enum.map(errors, fn %Error{error: error, path: path} ->
+        error_name =
+          error.__struct__
+          |> Atom.to_string()
+          |> String.split(".")
+          |> List.last()
+
+        "{#{error_name}, #{path}}"
+      end)
+      |> Enum.join(", ")
     end
   end
 
@@ -182,9 +201,7 @@ defmodule ExJsonSchema.Validator.Error.StringFormatter do
 
   defimpl String.Chars, for: Error.PropertyNames do
     def to_string(%Error.PropertyNames{invalid: invalid}) do
-      "Expected the property names to be valid but the following were not: #{
-        invalid |> Map.keys() |> Enum.sort() |> Enum.join(", ")
-      }."
+      "Expected the property names to be valid but the following were not: #{invalid |> Map.keys() |> Enum.sort() |> Enum.join(", ")}."
     end
   end
 

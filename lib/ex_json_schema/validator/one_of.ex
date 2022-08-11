@@ -8,6 +8,7 @@ defmodule ExJsonSchema.Validator.OneOf do
 
   alias ExJsonSchema.Validator
   alias ExJsonSchema.Validator.Error
+  alias ExJsonSchema.Validator.Error.ErrorComparison
 
   @behaviour ExJsonSchema.Validator
 
@@ -32,6 +33,9 @@ defmodule ExJsonSchema.Validator.OneOf do
           end
       end)
 
+    {closest_match_errors, closest_match_index} = ErrorComparison.closest_match(errors)
+    closest_match_schema = Enum.at(one_of, closest_match_index)
+
     case valid_count do
       1 ->
         []
@@ -41,7 +45,10 @@ defmodule ExJsonSchema.Validator.OneOf do
           %Error{
             error: %Error.OneOf{
               valid_indices: [],
-              invalid: errors |> Enum.reverse() |> Validator.map_to_invalid_errors()
+              invalid: errors |> Enum.reverse() |> Validator.map_to_invalid_errors(),
+              closest_match_index: closest_match_index,
+              closest_match_schema: closest_match_schema,
+              closest_match_errors: closest_match_errors
             }
           }
         ]

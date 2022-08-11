@@ -102,7 +102,13 @@ defmodule ExJsonSchema.Validator.Error do
   end
 
   defmodule OneOf do
-    defstruct([:valid_indices, :invalid])
+    defstruct([
+      :valid_indices,
+      :invalid,
+      :closest_match_index,
+      :closest_match_schema,
+      :closest_match_errors
+    ])
   end
 
   defmodule Pattern do
